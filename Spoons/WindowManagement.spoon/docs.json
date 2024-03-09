@@ -1,0 +1,285 @@
+[
+  {
+    "Constant" : [
+
+    ],
+    "submodules" : [
+
+    ],
+    "Function" : [
+
+    ],
+    "Variable" : [
+
+    ],
+    "stripped_doc" : [
+
+    ],
+    "Deprecated" : [
+
+    ],
+    "type" : "Module",
+    "desc" : "Provide functions to move windows between displays and change window placement and sizing.",
+    "Constructor" : [
+
+    ],
+    "Field" : [
+
+    ],
+    "Method" : [
+      {
+        "parameters" : [
+          " * gridSize - A `number` value specifying the grid size",
+          " * marginH - A `number` value specifying the horizontal margin",
+          " * marginW - A `number` value specifying the vertical margin",
+          ""
+        ],
+        "doc" : "Establishes the specified grid size and margins\n\nParameters:\n * gridSize - A `number` value specifying the grid size\n * marginH - A `number` value specifying the horizontal margin\n * marginW - A `number` value specifying the vertical margin\n\nReturns:\n * None\n\nNotes:\n * None",
+        "stripped_doc" : [
+          "Establishes the specified grid size and margins",
+          ""
+        ],
+        "desc" : "Establishes the specified grid size and margins",
+        "notes" : [
+          " * None"
+        ],
+        "signature" : "WindowManagement:setup(gridSize, marginH, marginW)",
+        "type" : "Method",
+        "returns" : [
+          " * None",
+          ""
+        ],
+        "def" : "WindowManagement:setup(gridSize, marginH, marginW)",
+        "name" : "setup"
+      },
+      {
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Maximize the focused window\n\nParameters:\n * None\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for the window to be maximized to a specific screen",
+        "stripped_doc" : [
+          "Maximize the focused window",
+          ""
+        ],
+        "desc" : "Maximize the focused window",
+        "notes" : [
+          " * There may be updates to add to this method to allow for the window to be maximized to a specific screen"
+        ],
+        "signature" : "WindowManagement:maximizeWindow()",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:maximizeWindow()",
+        "name" : "maximizeWindow"
+      },
+      {
+        "parameters" : [
+          "* cell - A `geometry` object specifying the screen position and size",
+          ""
+        ],
+        "doc" : "Move the focused window to the specified screen position\n\nParameters:\n* cell - A `geometry` object specifying the screen position and size\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for dynamic screen position creation\n * The `cell` parameter can be user defined, or utilize one of the provided screen positions",
+        "stripped_doc" : [
+          "Move the focused window to the specified screen position",
+          ""
+        ],
+        "desc" : "Move the focused window to the specified screen position",
+        "notes" : [
+          " * There may be updates to add to this method to allow for dynamic screen position creation",
+          " * The `cell` parameter can be user defined, or utilize one of the provided screen positions"
+        ],
+        "signature" : "WindowManagement:moveWindowToPosition(cell)",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:moveWindowToPosition(cell)",
+        "name" : "moveWindowToPosition"
+      },
+      {
+        "parameters" : [
+          " * d - A `number` value specifying the display number",
+          ""
+        ],
+        "doc" : "Move the focused window to the specified display\n\nParameters:\n * d - A `number` value specifying the display number\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for dynamic display selection",
+        "stripped_doc" : [
+          "Move the focused window to the specified display",
+          ""
+        ],
+        "desc" : "Move the focused window to the specified display",
+        "notes" : [
+          " * There may be updates to add to this method to allow for dynamic display selection"
+        ],
+        "signature" : "WindowManagement:moveWindowToDisplay(d)",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:moveWindowToDisplay(d)",
+        "name" : "moveWindowToDisplay"
+      },
+      {
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Bind the default hotkeys\n\nParameters:\n * None\n\nReturns:\n * None\n\nNotes:\n * These work best with a grid size of 2\n * Default hotkeys are:\n  * Maximize - `shift` + `cmd` + `return`\n  * Move to half positions - `alt` + `cmd` + ['left`, `up`, `down`, `right`],\n  * Move to quarter positions - `shift` + `cmd` + [`left`, `up`, `down`, `right`]\n  * Move to display - `shift` + `cmd` + [`1`, `2`, `3`]",
+        "stripped_doc" : [
+          "Bind the default hotkeys",
+          ""
+        ],
+        "desc" : "Bind the default hotkeys",
+        "notes" : [
+          " * These work best with a grid size of 2",
+          " * Default hotkeys are:",
+          "  * Maximize - `shift` + `cmd` + `return`",
+          "  * Move to half positions - `alt` + `cmd` + ['left`, `up`, `down`, `right`],",
+          "  * Move to quarter positions - `shift` + `cmd` + [`left`, `up`, `down`, `right`]",
+          "  * Move to display - `shift` + `cmd` + [`1`, `2`, `3`]"
+        ],
+        "signature" : "WindowManagement:bindDefaultHotkeys()",
+        "type" : "Method",
+        "returns" : [
+          " * None",
+          ""
+        ],
+        "def" : "WindowManagement:bindDefaultHotkeys()",
+        "name" : "bindDefaultHotkeys"
+      }
+    ],
+    "Command" : [
+
+    ],
+    "doc" : "Provide functions to move windows between displays and change window placement and sizing.",
+    "items" : [
+      {
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Bind the default hotkeys\n\nParameters:\n * None\n\nReturns:\n * None\n\nNotes:\n * These work best with a grid size of 2\n * Default hotkeys are:\n  * Maximize - `shift` + `cmd` + `return`\n  * Move to half positions - `alt` + `cmd` + ['left`, `up`, `down`, `right`],\n  * Move to quarter positions - `shift` + `cmd` + [`left`, `up`, `down`, `right`]\n  * Move to display - `shift` + `cmd` + [`1`, `2`, `3`]",
+        "stripped_doc" : [
+          "Bind the default hotkeys",
+          ""
+        ],
+        "desc" : "Bind the default hotkeys",
+        "notes" : [
+          " * These work best with a grid size of 2",
+          " * Default hotkeys are:",
+          "  * Maximize - `shift` + `cmd` + `return`",
+          "  * Move to half positions - `alt` + `cmd` + ['left`, `up`, `down`, `right`],",
+          "  * Move to quarter positions - `shift` + `cmd` + [`left`, `up`, `down`, `right`]",
+          "  * Move to display - `shift` + `cmd` + [`1`, `2`, `3`]"
+        ],
+        "signature" : "WindowManagement:bindDefaultHotkeys()",
+        "type" : "Method",
+        "returns" : [
+          " * None",
+          ""
+        ],
+        "def" : "WindowManagement:bindDefaultHotkeys()",
+        "name" : "bindDefaultHotkeys"
+      },
+      {
+        "parameters" : [
+          " * None",
+          ""
+        ],
+        "doc" : "Maximize the focused window\n\nParameters:\n * None\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for the window to be maximized to a specific screen",
+        "stripped_doc" : [
+          "Maximize the focused window",
+          ""
+        ],
+        "desc" : "Maximize the focused window",
+        "notes" : [
+          " * There may be updates to add to this method to allow for the window to be maximized to a specific screen"
+        ],
+        "signature" : "WindowManagement:maximizeWindow()",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:maximizeWindow()",
+        "name" : "maximizeWindow"
+      },
+      {
+        "parameters" : [
+          " * d - A `number` value specifying the display number",
+          ""
+        ],
+        "doc" : "Move the focused window to the specified display\n\nParameters:\n * d - A `number` value specifying the display number\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for dynamic display selection",
+        "stripped_doc" : [
+          "Move the focused window to the specified display",
+          ""
+        ],
+        "desc" : "Move the focused window to the specified display",
+        "notes" : [
+          " * There may be updates to add to this method to allow for dynamic display selection"
+        ],
+        "signature" : "WindowManagement:moveWindowToDisplay(d)",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:moveWindowToDisplay(d)",
+        "name" : "moveWindowToDisplay"
+      },
+      {
+        "parameters" : [
+          "* cell - A `geometry` object specifying the screen position and size",
+          ""
+        ],
+        "doc" : "Move the focused window to the specified screen position\n\nParameters:\n* cell - A `geometry` object specifying the screen position and size\n\nReturns:\n * A `WindowManagement` object\n\nNotes:\n * There may be updates to add to this method to allow for dynamic screen position creation\n * The `cell` parameter can be user defined, or utilize one of the provided screen positions",
+        "stripped_doc" : [
+          "Move the focused window to the specified screen position",
+          ""
+        ],
+        "desc" : "Move the focused window to the specified screen position",
+        "notes" : [
+          " * There may be updates to add to this method to allow for dynamic screen position creation",
+          " * The `cell` parameter can be user defined, or utilize one of the provided screen positions"
+        ],
+        "signature" : "WindowManagement:moveWindowToPosition(cell)",
+        "type" : "Method",
+        "returns" : [
+          " * A `WindowManagement` object",
+          ""
+        ],
+        "def" : "WindowManagement:moveWindowToPosition(cell)",
+        "name" : "moveWindowToPosition"
+      },
+      {
+        "parameters" : [
+          " * gridSize - A `number` value specifying the grid size",
+          " * marginH - A `number` value specifying the horizontal margin",
+          " * marginW - A `number` value specifying the vertical margin",
+          ""
+        ],
+        "doc" : "Establishes the specified grid size and margins\n\nParameters:\n * gridSize - A `number` value specifying the grid size\n * marginH - A `number` value specifying the horizontal margin\n * marginW - A `number` value specifying the vertical margin\n\nReturns:\n * None\n\nNotes:\n * None",
+        "stripped_doc" : [
+          "Establishes the specified grid size and margins",
+          ""
+        ],
+        "desc" : "Establishes the specified grid size and margins",
+        "notes" : [
+          " * None"
+        ],
+        "signature" : "WindowManagement:setup(gridSize, marginH, marginW)",
+        "type" : "Method",
+        "returns" : [
+          " * None",
+          ""
+        ],
+        "def" : "WindowManagement:setup(gridSize, marginH, marginW)",
+        "name" : "setup"
+      }
+    ],
+    "name" : "WindowManagement"
+  }
+]
