@@ -1,4 +1,4 @@
-# Irfan's Hammerspoon
+# Irfan's [Hammerspoon](https://www.hammerspoon.org/go/)
 
 Here's a useful collection of shortcuts as well and utilities (light filter) that I use on the daily. I'm going to eventually keep expanding this and start establishing the MenuBar Manager there are tidbits of.
 
