@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Page</title>
+  <style>
+    body {
+      background-color: #1E1E1E;
+      font-family: Arial, sans-serif;
+      color: #FFFFFF;
+    }
+    h1 {
+      color: #FFFFFF;
+    }
+    ul {
+      display: flex;
+      flex-direction: column;
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #1E1E1E;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    }
+
+    li {
+      float: left;
+      padding: 10px 10px 10px 10px;
+      border-top: 1px solid #eeeeee58;
+      border-bottom: 1px solid #eeeeee58;
+      cursor: default;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    li a {
+      display: block;
+      color: #333;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    li a:hover {
+      background-color: #ddd;
+    }
+    summary {
+      cursor: pointer;
+      color: #EEE;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    input #hotkeyToggle {
+      margin: 0px;
+      width: 30px;
+      height: 30px;
+    }
+  </style>
+  <script>
+    let hotkeyGroups = 1; // REPLACE_WITH_HOTKEY_GROUPS
+
+    function listItemElement(data) {
+      let li = document.createElement('li');
+      let checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = 'hotkey-toggle';
+      checkbox.checked = data.enabled;
+      checkbox.addEventListener('change', function(el, value) {
+        console.log(el.target.checked);
+        window.webkit.messageHandlers.menubarManager.postMessage({
+          type: 'toggleHotkey',
+          hotkey: data,
+          value: el.target.checked,
+        });
+      });
+      li.textContent = data.title;
+      li.appendChild(checkbox);
+      return li;
+    }
+
+    function groupList(title, hotkeys) {
+      // Create elements
+      let div = document.createElement('div');
+      let detail = document.createElement('details');
+      let summary = document.createElement('summary');
+      let ul = document.createElement('ul', {id: `${title}-list`});
+
+      // Set content and attributes
+      ul.id = title;
+
+      // Append elements
+      summary.textContent = title;
+      detail.appendChild(summary);
+      detail.appendChild(ul);
+      div.appendChild(detail);
+
+      hotkeys.forEach(hotkey => {
+        let data = hotkey;
+        data.title = hotkey.text.split(': ')[1];
+        let li = listItemElement(data);
+        ul.appendChild(li);
+      });
+
+      return div;
+    }
+
+    window.onload = function() {
+      document.getElementById('greeting').textContent = 'Hammerspoon Manager';
+      let hotkeysDiv = document.getElementById('hotkeys');
+      // hotkeysDiv.innerHTML = '<h2>Hotkeys</h2>';
+      // hotkeysDiv.innerHTML = hotkeys.map(val => `<p>${val}</p>`).join('\n');
+      console.log(hotkeys)
+      Object.values(hotkeyGroups).forEach(hotkey => {
+        let group = groupList(hotkey.text, hotkey.hotkeys);
+        let li = document.createElement('li');
+        li.textContent = hotkey.text;
+        hotkeysDiv.appendChild(group);
+      });
+    }
+  </script>
+</head>
+<body>
+  <div id="header">
+    <h1>MenubarManager</h1>
+  </div>
+  <h1 id="greeting">Hello</h1>
+  <div id="content">
+    <div id="hotkeys">
+    </div>
+  </div>
+  <details>
+    <summary>Click to expand</summary>
+    <p>This is some hidden content. It will be visible when the user clicks on the summary element.</p>
+  </details>
+  <div id="footer">
+    <p>Powered by <a href="www.google.com">Hammerspoon</a></p>
+  </div>
+</body>
+</html>

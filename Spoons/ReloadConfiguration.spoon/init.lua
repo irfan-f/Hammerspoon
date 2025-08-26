@@ -45,17 +45,19 @@ function obj:start()
   if _watcher ~= nil then
     self:stop()
   end
+
   -- Create a new watcher and start it
   _watcher = hs.pathwatcher.new(os.getenv('HOME') .. '/.hammerspoon/', function(files)
-    -- If any .lua file changes, reload the configuration
+    -- If any .lua or .html file changes, reload the configuration
     local doReload = false
     for _, file in pairs(files) do
-      if file:sub(-4) == ".lua" then
+      if file:sub(-4) == ".lua" or file:sub(-5) == ".html" then
         doReload = true
       end
     end
     if doReload then
-      hs.reload()
+      hs.reload();
+      hs.notify.new({title="Hammerspoon", informativeText="Configuration reloaded", autoWithdraw=true, withdrawAfter=1}):send();
     end
   end):start()
 
@@ -128,6 +130,8 @@ function obj:init()
   -- Set the click callback
   if menubar then
     menubar:setClickCallback(menubarClicked)
+    menubar:setTooltip("Click to start watching the Hammerspoon directory")
+    menubar:setIcon(hs.image.imageFromName(menubarStopIcon))
   end
 end
 

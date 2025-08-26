@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Light Filter Options</title>
+  <style>
+    body {
+      background-color: #FFFFFF;
+      font-family: Arial, sans-serif;
+      color: #111111;
+    }
+    h1 {
+      color: #111111;
+    }
+  </style>
+  <script>
+
+    function lightFilterBarElement() {
+      console.log('what');
+      let li = document.createElement('li');
+      let range = document.createElement('input');
+      range.type = 'range';
+      range.min = 0;
+      range.max = 1;
+
+      range.addEventListener('change', function(el, value) {
+        window.webkit.messageHandlers.menubarManager.postMessage({
+          type: 'toggleHotkey',
+          hotkey: data,
+          value: el.target,
+        });
+      });
+      li.textContent = data.title;
+      li.appendChild(range);
+      return li;
+    }
+
+    window.onload = function() {
+      let slidersList = document.getElementById('sliders');
+      [1, 2, 3, 4, 5, 6].forEach(hotkey => {
+        let rangeSlider = lightFilterBarElement();
+        console.log(rangeSlider);
+        slidersList.appendChild(rangeSlider)
+      });
+    }
+  </script>
+</head>
+<body>
+  <header>
+    Light Filter Options
+  </header>
+  <main>
+    <ul id="sliders">
+      <li>
+        <label for="whitepoint-a">White point A</label>
+        <input name="whitepoint-a" type="range" min="0" step="0.01" max="1" />
+      </li>
+    </ul>
+  </main>
+  <div id="footer">
+    <p>Powered by <a href="www.google.com">Hammerspoon</a></p>
+  </div>
+</body>
+</html>
