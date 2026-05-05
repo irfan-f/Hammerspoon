@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; }
+      body { background: rgba(28, 28, 30, 0.92); color: rgba(255, 255, 255, 0.92); }
+      .wrap { padding: 10px 10px 8px; max-width: 520px; }
+      .title { font-size: 13px; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+      .help { font-size: 11px; opacity: 0.62; margin: 0 0 8px; }
+      .rows { max-height: 360px; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 8px; }
+      .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      .desc { flex: 1 1 180px; min-width: 0; font-size: 11px; line-height: 1.35; opacity: 0.9; }
+      .control { flex: 0 1 auto; display: flex; align-items: center; gap: 8px; }
+      .pill {
+        min-width: 72px; padding: 6px 8px; border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(0, 0, 0, 0.18);
+      }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; opacity: 0.88; }
+      .btn {
+        appearance: none; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.10);
+        color: rgba(255, 255, 255, 0.92); border-radius: 10px; padding: 6px 9px; font-size: 11px; cursor: pointer; white-space: nowrap;
+      }
+      .btn.primary { border-color: rgba(10, 132, 255, 0.55); background: rgba(10, 132, 255, 0.22); }
+      .hr { height: 1px; background: rgba(255, 255, 255, 0.10); margin: 10px 0 0; }
+    </style>
+  </head>
+  <body tabindex="0">
+    <div class="wrap">
+      <div class="title" id="title">Window shortcuts</div>
+      <div class="help">Each row: action and current hotkey. Set… records a new shortcut (Esc cancels).</div>
+      <div class="rows" id="rows"></div>
+      <div class="hr"></div>
+    </div>
+    <script>
+      function post(type, payload) {
+        try {
+          window.webkit.messageHandlers.windowManagementHotkeys.postMessage(Object.assign({ type: type }, payload || {}));
+        } catch (e) {}
+      }
+      function boot(state) {
+        if (!state || !state.actions) return;
+        var el = document.getElementById("rows");
+        if (!el) return;
+        el.innerHTML = "";
+        state.actions.forEach(function (row) {
+          var wrap = document.createElement("div");
+          wrap.className = "row";
+          var d = document.createElement("div");
+          d.className = "desc";
+          d.textContent = row.description || "";
+          var ctl = document.createElement("div");
+          ctl.className = "control";
+          var pill = document.createElement("div");
+          pill.className = "pill";
+          var code = document.createElement("code");
+          code.textContent = row.hotkey || "(not set)";
+          pill.appendChild(code);
+          pill.title = row.hotkey || "";
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn primary";
+          btn.textContent = "Set…";
+          btn.addEventListener("click", function () {
+            post("armHotkeyCapture", { id: row.id });
+          });
+          ctl.appendChild(pill);
+          ctl.appendChild(btn);
+          wrap.appendChild(d);
+          wrap.appendChild(ctl);
+          el.appendChild(wrap);
+        });
+      }
+      window.boot = boot;
+      function runBoot() { try { boot(window.__WM_HOTKEYS_STATE__); } catch (e) {} }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", runBoot);
+      else runBoot();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; }
+      body { background: rgba(28, 28, 30, 0.92); color: rgba(255, 255, 255, 0.92); }
+      .wrap { padding: 10px 10px 8px; max-width: 420px; }
+      .title { font-size: 13px; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.01em; }
+      .form { display: flex; flex-direction: column; gap: 10px; }
+      .field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      .label { flex: 0 0 120px; font-size: 11px; opacity: 0.72; }
+      .control { flex: 1 1 220px; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: flex-end; }
+      .btn {
+        appearance: none; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.10);
+        color: rgba(255, 255, 255, 0.92); border-radius: 10px; padding: 7px 9px; font-size: 11px; cursor: pointer; white-space: nowrap;
+      }
+      .btn.primary { border-color: rgba(10, 132, 255, 0.55); background: rgba(10, 132, 255, 0.22); }
+      .pill {
+        flex: 1 1 160px; min-width: 0; padding: 7px 8px; border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(0, 0, 0, 0.18);
+      }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; opacity: 0.85; }
+      .muted { opacity: 0.62; font-size: 11px; margin: -4px 0 0 128px; }
+      .hr { height: 1px; background: rgba(255, 255, 255, 0.10); margin: 10px 0 0; }
+    </style>
+  </head>
+  <body tabindex="0">
+    <div class="wrap">
+      <div class="title" id="title">Caffeinate</div>
+      <div class="form">
+        <div class="field">
+          <div class="label">Toggle hotkey</div>
+          <div class="control">
+            <div class="pill" id="hotkeyWrap"><code id="hotkeyLabel">(not set)</code></div>
+            <button class="btn primary" type="button" id="btnHotkeySet">Set…</button>
+          </div>
+        </div>
+        <div class="muted" id="hotkeyHelp">Press shortcut to replace toggle (Esc cancels).</div>
+      </div>
+      <div class="hr"></div>
+    </div>
+    <script>
+      function post(type, payload) {
+        try {
+          window.webkit.messageHandlers.caffeinateSettings.postMessage(Object.assign({ type: type }, payload || {}));
+        } catch (e) {}
+      }
+      function boot(state) {
+        if (!state) return;
+        document.getElementById("hotkeyLabel").textContent = state.hotkey || "(not set)";
+        document.getElementById("hotkeyWrap").title = state.hotkey || "";
+      }
+      window.boot = boot;
+      function runBoot() { try { boot(window.__CAF_SETTINGS_STATE__); } catch (e) {} }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", runBoot);
+      else runBoot();
+      document.getElementById("btnHotkeySet").addEventListener("click", function () {
+        post("armHotkeyCapture");
+      });
+    </script>
+  </body>
+</html>

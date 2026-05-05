@@ -1,6 +1,6 @@
---- === Light Filter ===
+--- === BrightnessPlus ===
 ---
---- Allow user to control the light filter present on their displays
+--- Gamma-based perceived brightness beyond macOS limits (all screens).
 ---
 local hkcap = require("hotkey_capture")
 local menubar_sync = require("menubar_sync")
@@ -8,39 +8,36 @@ local menubar_sync = require("menubar_sync")
 local obj = {}
 obj.__index = obj
 
-obj.name = "LightFilter"
+obj.name = "BrightnessPlus"
 obj.version = "0.1.0"
-obj.author = "<irfan@email>"
-obj.homepage = ""
+obj.author = "Irfan F."
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
-obj.logger = hs.logger.new("LightFilter")
+obj.logger = hs.logger.new("BrightnessPlus")
 local displayEffects = require("display_effects")
 
 local panelWebview = nil
 local panelInjector = nil
-local isFilterEnabled = false
-local settingsKey = "LightFilter.warmth"
-local warmth = nil
-obj.defaultWarmth = 50
 
-obj.hotkey = { mods = { "cmd", "option" }, key = "L" }
-obj.showMenubarExtra = false
-obj.menubarShortTitle = "☀"
-obj._hotkey = nil
-obj._extraMenubar = nil
-
-local settingsKeyHotkey = "LightFilter.hotkey"
-local settingsKeyMenubar = "LightFilter.showMenubarExtra"
+local settingsEnabledKey = "BrightnessPlus.enabled"
+local settingsBoostKey = "BrightnessPlus.boost"
+local settingsKeyHotkey = "BrightnessPlus.hotkey"
+local settingsKeyMenubar = "BrightnessPlus.showMenubarExtra"
 
 local windowStyle = hs.webview.windowMasks.borderless
   | hs.webview.windowMasks.titled
   | hs.webview.windowMasks.resizable
   | hs.webview.windowMasks.closable
 
-local function lerp(a, b, t)
-  return a + ((b - a) * t)
-end
+obj.defaultBoost = 100
+obj.hotkey = { mods = { "cmd", "option" }, key = "B" }
+obj.showMenubarExtra = false
+obj.menubarShortTitle = "B+"
+obj._hotkey = nil
+obj._extraMenubar = nil
+
+local enabled = false
+local boost = nil
 
 local function clamp(n, minValue, maxValue)
   if n < minValue then
@@ -52,22 +49,44 @@ local function clamp(n, minValue, maxValue)
   return n
 end
 
-local function loadWarmth()
+local function lerp(a, b, t)
+  return a + ((b - a) * t)
+end
+
+local function loadEnabled()
   if not displayEffects.getPersistEnabled() then
-    return obj.defaultWarmth
+    return false
   end
-  local v = hs.settings.get(settingsKey)
+  local v = hs.settings.get(settingsEnabledKey)
+  if type(v) ~= "boolean" then
+    return false
+  end
+  return v
+end
+
+local function saveEnabled(v)
+  if not displayEffects.getPersistEnabled() then
+    return
+  end
+  hs.settings.set(settingsEnabledKey, v and true or false)
+end
+
+local function loadBoost(defaultBoost)
+  if not displayEffects.getPersistEnabled() then
+    return defaultBoost
+  end
+  local v = hs.settings.get(settingsBoostKey)
   if type(v) ~= "number" then
-    return obj.defaultWarmth
+    return defaultBoost
   end
   return clamp(v, 0, 100)
 end
 
-local function saveWarmth(v)
+local function saveBoost(v)
   if not displayEffects.getPersistEnabled() then
     return
   end
-  hs.settings.set(settingsKey, v)
+  hs.settings.set(settingsBoostKey, v)
 end
 
 function obj:_loadPanelSettings()
@@ -81,20 +100,12 @@ function obj:_loadPanelSettings()
   end
 end
 
-function obj:init()
-  self:_loadPanelSettings()
-  return self
-end
-
 function obj:_setHotkey(mods, key)
   self.hotkey = { mods = mods, key = key }
   if displayEffects.getPersistEnabled() then
     hs.settings.set(settingsKeyHotkey, self.hotkey)
   end
   self:bindHotkeys()
-  if spoon and spoon.MenubarManager and type(spoon.MenubarManager.setMenuEntryHotkey) == "function" then
-    spoon.MenubarManager:setMenuEntryHotkey("lightFilter", hkcap.formatMenubarHotkey(self.hotkey))
-  end
 end
 
 function obj:bindHotkeys()
@@ -105,7 +116,7 @@ function obj:bindHotkeys()
   self._hotkey = hs.hotkey.bind(self.hotkey.mods, self.hotkey.key, function()
     self:toggle()
   end)
-  self.logger.i("LightFilter hotkey: " .. hkcap.formatHotkey(self.hotkey))
+  self.logger.i("BrightnessPlus hotkey: " .. hkcap.formatHotkey(self.hotkey))
   return self
 end
 
@@ -131,10 +142,10 @@ function obj:refreshExtraMenubar()
     return self
   end
   self._extraMenubar:setTitle(self.menubarShortTitle)
-  self._extraMenubar:setTooltip("Light filter")
+  self._extraMenubar:setTooltip("Brightness boost")
   self._extraMenubar:setMenu({
     {
-      title = "Toggle light filter",
+      title = "Toggle brightness boost",
       fn = function()
         self:toggle()
       end,
@@ -155,8 +166,8 @@ end
 
 function obj:_panelStateTable()
   return {
-    title = "Light filter",
-    warmth = self:getWarmth(),
+    title = "Brightness boost",
+    boost = self:getBoost(),
     hotkey = hkcap.formatHotkey(self.hotkey),
     showMenubarExtra = self.showMenubarExtra and true or false,
   }
@@ -173,7 +184,7 @@ function obj:_buildPanelHtml()
     html = "<html><body>Missing panel.html</body></html>"
   end
   local json = hs.json.encode(self:_panelStateTable())
-  html = string.gsub(html, "</head>", "<script>window.__LF_STATE__=" .. json .. ";</script></head>", 1)
+  html = string.gsub(html, "</head>", "<script>window.__BP_STATE__=" .. json .. ";</script></head>", 1)
   return html
 end
 
@@ -182,84 +193,121 @@ function obj:_syncPanelToWebview()
     return
   end
   local json = hs.json.encode(self:_panelStateTable())
-  local js = "(function(){try{var s=" .. json .. ";window.__LF_STATE__=s;if(typeof boot==='function')boot(s);}catch(e){}})()"
+  local js = "(function(){try{var s=" .. json .. ";window.__BP_STATE__=s;if(typeof boot==='function')boot(s);}catch(e){}})()"
   pcall(function()
     panelWebview:evaluateJavaScript(js)
   end)
 end
 
-local function warmthToGamma(w)
-  local clamped = clamp(w, 0, 100)
-
-  local normal = { red = 1.0, green = 1.0, blue = 1.0 }
-  local old90 = { red = 0.6, green = 0.5, blue = 0.3 }
-  local extra100 = { red = 0.5, green = 0.4, blue = 0.2 }
-
-  if clamped <= 90 then
-    local t = clamped / 90
-    return {
-      red = lerp(normal.red, old90.red, t),
-      green = lerp(normal.green, old90.green, t),
-      blue = lerp(normal.blue, old90.blue, t),
-    }
+local function boostToGamma(boostValue)
+  local v = clamp(boostValue, 0, 100)
+  if v <= 0 then
+    return { red = 1.0, green = 1.0, blue = 1.0 }, 0.0
   end
 
-  local t = (clamped - 90) / 10
-  return {
-    red = lerp(old90.red, extra100.red, t),
-    green = lerp(old90.green, extra100.green, t),
-    blue = lerp(old90.blue, extra100.blue, t),
-  }
+  local t = v / 100
+  local mult = lerp(1.0, 1.6, t)
+  return { red = mult, green = mult, blue = mult }, 0.0
 end
 
-local function warmthToOverlayAlpha(w)
-  local clamped = clamp(w, 0, 100)
-  if clamped <= 90 then
-    return 0.3 * (clamped / 90)
+function obj:apply()
+  if boost == nil then
+    boost = loadBoost(self.defaultBoost)
   end
-  return lerp(0.3, 0.4, (clamped - 90) / 10)
+  displayEffects.setCompute(function()
+    local gamma, alpha = boostToGamma(boost)
+    return gamma, alpha
+  end)
+  displayEffects.enable()
 end
 
-local function setLightFilterDisplay(enabled)
-  if enabled then
-    if warmth == nil then
-      warmth = loadWarmth()
-    end
-    displayEffects.setCompute(function()
-      return warmthToGamma(warmth), warmthToOverlayAlpha(warmth)
-    end)
-    displayEffects.enable()
-
-    isFilterEnabled = true
-    obj.logger.i("Enabled light filter (warmth=" .. tostring(warmth) .. ")")
-    return
-  end
-
+function obj:disable()
   if displayEffects.isEnabled() then
     displayEffects.disable()
   else
     hs.screen.restoreGamma()
   end
-  isFilterEnabled = false
-  obj.logger.i("Disabled light filter")
+end
+
+function obj:isEnabled()
+  return enabled
+end
+
+function obj:setEnabled(v)
+  enabled = v and true or false
+  saveEnabled(enabled)
+
+  if enabled then
+    if
+      spoon
+      and spoon.LightFilter
+      and spoon.LightFilter.isEnabled
+      and spoon.LightFilter:isEnabled()
+    then
+      spoon.LightFilter:setEnabled(false)
+    end
+    self:apply()
+    self.logger.i("Enabled brightness boost (boost=" .. tostring(self:getBoost()) .. ")")
+    menubar_sync.refreshMenubarIfNeeded()
+    return
+  end
+
+  self:disable()
+  self.logger.i("Disabled brightness override")
+  menubar_sync.refreshMenubarIfNeeded()
+end
+
+function obj:toggle()
+  self:setEnabled(not self:isEnabled())
+end
+
+function obj:getBoost()
+  if boost == nil then
+    boost = loadBoost(self.defaultBoost)
+  end
+  return boost
+end
+
+function obj:setBoost(v)
+  local n = tonumber(v)
+  if not n then
+    return
+  end
+  n = clamp(n, 0, 100)
+
+  if n <= 0 then
+    self:setEnabled(false)
+    boost = 0
+    saveBoost(0)
+    return
+  end
+
+  boost = n
+  saveBoost(boost)
+  if enabled then
+    displayEffects.apply()
+    menubar_sync.refreshMenubarIfNeeded()
+  else
+    self:setEnabled(true)
+  end
 end
 
 function obj:showOptions()
   if panelWebview == nil then
-    panelInjector = hs.webview.usercontent.new("lightFilter")
+    panelInjector = hs.webview.usercontent.new("brightnessPlus")
     panelInjector:setCallback(function(message)
       if type(message) ~= "table" or type(message.body) ~= "table" then
         return
       end
       local t = message.body.type
-      if t == "setWarmth" then
-        self:setWarmth(message.body.value)
+      if t == "setBoost" then
+        self:setBoost(message.body.value)
         self:_syncPanelToWebview()
         return
       end
       if t == "armHotkeyCapture" then
         hkcap.startCapture(self, {
-          notifyTitle = "Light filter",
+          notifyTitle = "Brightness boost",
           webview = panelWebview,
           onSuccess = function(s, mods, key)
             s:_setHotkey(mods, key)
@@ -299,48 +347,14 @@ function obj:showOptions()
   panelWebview:bringToFront(true)
 end
 
-function obj:isEnabled()
-  return isFilterEnabled
-end
-
-function obj:getWarmth()
-  if warmth == nil then
-    warmth = loadWarmth()
-  end
-  return warmth
-end
-
-function obj:setWarmth(value)
-  local v = tonumber(value)
-  if not v then
-    return
-  end
-  v = clamp(v, 0, 100)
-  warmth = v
-  saveWarmth(v)
-  if isFilterEnabled then
-    displayEffects.apply()
-    menubar_sync.refreshMenubarIfNeeded()
-  end
-end
-
-function obj:setEnabled(enabled)
+function obj:init()
+  self:_loadPanelSettings()
+  enabled = loadEnabled()
+  boost = loadBoost(self.defaultBoost)
   if enabled then
-    if
-      spoon
-      and spoon.BrightnessPlus
-      and spoon.BrightnessPlus.isEnabled
-      and spoon.BrightnessPlus:isEnabled()
-    then
-      spoon.BrightnessPlus:setEnabled(false)
-    end
+    self:apply()
   end
-  setLightFilterDisplay(enabled and true or false)
-  menubar_sync.refreshMenubarIfNeeded()
-end
-
-function obj:toggle()
-  self:setEnabled(not self:isEnabled())
+  return self
 end
 
 return obj

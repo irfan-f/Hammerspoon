@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+        font-size: 12px;
+      }
+      body {
+        background: rgba(28, 28, 30, 0.96);
+        color: rgba(255, 255, 255, 0.92);
+      }
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: sticky;
+        top: 0;
+        background: rgba(28, 28, 30, 0.98);
+        z-index: 1;
+      }
+      .toolbar h1 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        flex: 0 0 auto;
+      }
+      .search {
+        flex: 1 1 auto;
+        min-width: 120px;
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.22);
+        color: inherit;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .search::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.92);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 11px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn.primary {
+        border-color: rgba(10, 132, 255, 0.55);
+        background: rgba(10, 132, 255, 0.22);
+      }
+      .table-wrap {
+        overflow: auto;
+        max-height: calc(100vh - 52px);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        text-align: left;
+        font-weight: 600;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        opacity: 0.55;
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        position: sticky;
+        top: 0;
+        background: rgba(28, 28, 30, 0.98);
+      }
+      td {
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        vertical-align: top;
+      }
+      tr[data-pid]:hover td {
+        background: rgba(10, 132, 255, 0.12);
+      }
+      tr[data-pid] {
+        cursor: pointer;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .bundle {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+        opacity: 0.78;
+        word-break: break-all;
+      }
+      .tags {
+        font-size: 10px;
+        color: rgba(255, 159, 10, 0.95);
+      }
+      .empty {
+        padding: 24px 12px;
+        text-align: center;
+        opacity: 0.55;
+      }
+    </style>
+  </head>
+  <body tabindex="0">
+    <div class="toolbar">
+      <h1>Activity Advisor</h1>
+      <input
+        type="search"
+        class="search"
+        id="filter"
+        placeholder="Filter by name, bundle, tags…"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Filter applications"
+      />
+      <button type="button" class="btn primary" id="btnRefresh" title="Refresh list">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Application</th>
+            <th>CPU</th>
+            <th>Memory</th>
+            <th>Bundle ID</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>No matching applications.</div>
+    </div>
+    <script>
+      var allRows = [];
+
+      function post(type, payload) {
+        window.webkit.messageHandlers.activityAdvisor.postMessage(
+          Object.assign({ type: type }, payload || {})
+        );
+      }
+
+      function rowMatches(q, r) {
+        if (!q) return true;
+        var hay = (
+          (r.name || "") +
+          " " +
+          (r.bundleID || "") +
+          " " +
+          (r.tagStr || "") +
+          " " +
+          String(r.pid)
+        ).toLowerCase();
+        return hay.indexOf(q) !== -1;
+      }
+
+      function render() {
+        var q = (document.getElementById("filter").value || "").toLowerCase().trim();
+        var tb = document.getElementById("tbody");
+        var emptyEl = document.getElementById("empty");
+        tb.innerHTML = "";
+        var any = false;
+        for (var i = 0; i < allRows.length; i++) {
+          var r = allRows[i];
+          if (!rowMatches(q, r)) continue;
+          any = true;
+          var tr = document.createElement("tr");
+          tr.setAttribute("data-pid", String(r.pid));
+          tr.title = "Activate " + (r.name || "");
+          tr.innerHTML =
+            "<td>" +
+            escapeHtml(r.name || "") +
+            "</td>" +
+            '<td class="num">' +
+            escapeHtml(String(r.pcpu.toFixed(1))) +
+            "%</td>" +
+            '<td class="num">' +
+            escapeHtml(String(r.rssMb)) +
+            " MB</td>" +
+            '<td class="bundle">' +
+            escapeHtml(r.bundleDisplay || "") +
+            "</td>" +
+            '<td class="tags">' +
+            escapeHtml(r.tagStr || "") +
+            "</td>";
+          tr.addEventListener("click", function (ev) {
+            var pid = parseInt(ev.currentTarget.getAttribute("data-pid"), 10);
+            if (pid) post("activate", { pid: pid });
+          });
+          tb.appendChild(tr);
+        }
+        emptyEl.hidden = any;
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function boot(state) {
+        allRows = (state && state.rows) || [];
+        render();
+      }
+      window.boot = boot;
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+          render();
+        });
+      } else {
+        render();
+      }
+
+      document.getElementById("filter").addEventListener("input", function () {
+        render();
+      });
+      document.getElementById("btnRefresh").addEventListener("click", function () {
+        post("refresh");
+      });
+    </script>
+  </body>
+</html>

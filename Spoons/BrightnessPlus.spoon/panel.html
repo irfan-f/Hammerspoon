@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; }
+      body { background: rgba(28, 28, 30, 0.92); color: rgba(255, 255, 255, 0.92); }
+      .wrap { padding: 10px 10px 8px; max-width: 480px; }
+      .title { font-size: 13px; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.01em; }
+      .form { display: flex; flex-direction: column; gap: 10px; }
+      .field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+      .label { flex: 0 0 120px; font-size: 11px; opacity: 0.72; }
+      .control { flex: 1 1 220px; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: flex-end; }
+      .sliderRow { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; min-width: 0; }
+      input[type="range"] {
+        flex: 1 1 auto; min-width: 0; -webkit-appearance: none; appearance: none; height: 28px; background: transparent; margin: 0;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 6px; background: rgba(255, 255, 255, 0.22); border-radius: 999px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 18px; height: 18px; border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95); margin-top: -6px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+      }
+      .value { font-variant-numeric: tabular-nums; font-size: 11px; opacity: 0.78; min-width: 36px; text-align: right; }
+      .btn {
+        appearance: none; border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.10);
+        color: rgba(255, 255, 255, 0.92); border-radius: 10px; padding: 7px 9px; font-size: 11px; cursor: pointer; white-space: nowrap;
+      }
+      .btn.primary { border-color: rgba(10, 132, 255, 0.55); background: rgba(10, 132, 255, 0.22); }
+      .pill {
+        flex: 1 1 160px; min-width: 0; padding: 7px 8px; border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10); background: rgba(0, 0, 0, 0.18);
+      }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; opacity: 0.85; }
+      .check { display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer; user-select: none; }
+      .check input { width: 14px; height: 14px; accent-color: #0a84ff; }
+      .muted { opacity: 0.62; font-size: 11px; margin: -4px 0 0 128px; }
+      .hr { height: 1px; background: rgba(255, 255, 255, 0.10); margin: 10px 0 0; }
+    </style>
+  </head>
+  <body tabindex="0">
+    <div class="wrap">
+      <div class="title" id="title">Brightness boost</div>
+      <div class="form">
+        <div class="field">
+          <div class="label">Boost</div>
+          <div class="control sliderRow">
+            <input id="boost" type="range" min="0" max="100" step="1" value="0" />
+            <span class="value" id="boostValue">0%</span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="label">Hotkey</div>
+          <div class="control">
+            <div class="pill" id="hotkeyWrap"><code id="hotkeyLabel">(not set)</code></div>
+            <button class="btn primary" type="button" id="btnHotkeySet">Set…</button>
+          </div>
+        </div>
+        <div class="muted" id="hotkeyHelp">Notification: press shortcut (Esc cancels).</div>
+        <div class="field">
+          <div class="label">Menu bar</div>
+          <div class="control">
+            <label class="check"><input type="checkbox" id="showMenubar" /> Extra icon (toggle + settings)</label>
+          </div>
+        </div>
+      </div>
+      <div class="hr"></div>
+    </div>
+    <script>
+      function post(type, payload) {
+        try {
+          window.webkit.messageHandlers.brightnessPlus.postMessage(Object.assign({ type: type }, payload || {}));
+        } catch (e) {}
+      }
+      function boot(state) {
+        if (!state) return;
+        var w = document.getElementById("boost");
+        var v = state.boost != null ? state.boost : 0;
+        if (w) { w.value = String(v); document.getElementById("boostValue").textContent = v + "%"; }
+        document.getElementById("hotkeyLabel").textContent = state.hotkey || "(not set)";
+        document.getElementById("hotkeyWrap").title = state.hotkey || "";
+        var smb = document.getElementById("showMenubar");
+        if (smb) smb.checked = !!state.showMenubarExtra;
+      }
+      window.boot = boot;
+      function runBoot() { try { boot(window.__BP_STATE__); } catch (e) {} }
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", runBoot);
+      else runBoot();
+
+      document.getElementById("boost").addEventListener("input", function (e) {
+        var n = Number(e.target.value);
+        document.getElementById("boostValue").textContent = n + "%";
+        post("setBoost", { value: n });
+      });
+      document.getElementById("btnHotkeySet").addEventListener("click", function () {
+        post("armHotkeyCapture");
+      });
+      document.getElementById("showMenubar").addEventListener("change", function (e) {
+        post("setShowMenubarExtra", { value: e.target.checked });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,280 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      }
+      body {
+        background: rgba(28, 28, 30, 0.92);
+        color: rgba(255, 255, 255, 0.92);
+      }
+      .wrap {
+        padding: 10px 10px 8px;
+        max-width: 480px;
+      }
+      .title {
+        font-size: 13px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        margin: 0 0 2px;
+      }
+      .muted {
+        opacity: 0.62;
+        font-size: 11px;
+        line-height: 1.35;
+        margin: 0 0 8px;
+      }
+      .form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .field {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .label {
+        flex: 0 0 120px;
+        font-size: 11px;
+        opacity: 0.72;
+      }
+      .control {
+        flex: 1 1 220px;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+      select {
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.92);
+        padding: 0 8px;
+        outline: none;
+        max-width: 100%;
+      }
+      .btn {
+        appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.10);
+        color: rgba(255, 255, 255, 0.92);
+        border-radius: 10px;
+        padding: 7px 9px;
+        font-size: 11px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn.primary {
+        border-color: rgba(10, 132, 255, 0.55);
+        background: rgba(10, 132, 255, 0.22);
+      }
+      .btn:active {
+        transform: translateY(0.5px);
+      }
+      .pill {
+        flex: 1 1 180px;
+        min-width: 0;
+        padding: 7px 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(0, 0, 0, 0.18);
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 10px;
+        opacity: 0.85;
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .check input {
+        width: 14px;
+        height: 14px;
+        accent-color: #0a84ff;
+      }
+      .footer {
+        margin-top: 10px;
+        display: flex;
+        justify-content: center;
+      }
+      .hr {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.10);
+        margin: 10px 0 0;
+      }
+    </style>
+  </head>
+  <body tabindex="0">
+    <div class="wrap">
+      <div class="title" id="title">OCR settings</div>
+      <div class="form">
+        <div class="field">
+          <div class="label">Default input</div>
+          <div class="control">
+            <select id="defaultInput">
+              <option value="prompt">Prompt each time</option>
+              <option value="screenshot">Take a screenshot</option>
+              <option value="image">Use an image file</option>
+              <option value="clipboard">Use your copied image</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">After OCR</div>
+          <div class="control">
+            <select id="defaultOutput">
+              <option value="prompt">Prompt each time</option>
+              <option value="clipboard">Save to clipboard</option>
+              <option value="textedit">Open in TextEdit</option>
+              <option value="folder">Save to folder</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">Folder</div>
+          <div class="control">
+            <div class="pill" title="" id="folderPathWrap"><code id="folderPath">(not set)</code></div>
+            <button class="btn primary" id="btnFolderChoose">Choose…</button>
+            <button class="btn" id="btnFolderOpen">Open</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="label">Hotkey</div>
+          <div class="control">
+            <div class="pill" title="" id="hotkeyWrap"><code id="hotkeyLabel">(not set)</code></div>
+            <button class="btn primary" id="btnHotkeySet">Set…</button>
+          </div>
+        </div>
+        <div class="muted" id="hotkeyHelp" style="margin: -4px 0 0 128px">
+          Notification: press shortcut (Esc cancels).
+        </div>
+
+        <div class="field">
+          <div class="label">Menu bar</div>
+          <div class="control">
+            <label class="check"><input type="checkbox" id="showMenubar" /> Show OCR in menu bar</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <button class="btn" id="btnReset">Reset</button>
+      </div>
+
+      <div class="hr"></div>
+    </div>
+
+    <script>
+      function post(type, payload) {
+        try {
+          window.webkit.messageHandlers.ocr.postMessage(Object.assign({ type: type }, payload || {}));
+        } catch (e) {}
+      }
+
+      function setText(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = text;
+      }
+
+      function setTitle(id, text) {
+        var el = document.getElementById(id);
+        if (el) el.title = text || "";
+      }
+
+      function boot(state) {
+        if (!state) return;
+        setText("title", state.title || "OCR settings");
+
+        var folder = state.folder || "(not set)";
+        var hotkey = state.hotkey || "(not set)";
+        setText("folderPath", folder);
+        setText("hotkeyLabel", hotkey);
+        setTitle("folderPathWrap", folder);
+        setTitle("hotkeyWrap", hotkey);
+
+        var di = document.getElementById("defaultInput");
+        if (di && state.defaultInput) di.value = state.defaultInput;
+
+        var dms = document.getElementById("defaultOutput");
+        if (dms && state.defaultOutput) {
+          var o = state.defaultOutput === "editor" ? "textedit" : state.defaultOutput;
+          dms.value = o;
+        }
+
+        var smb = document.getElementById("showMenubar");
+        if (smb) smb.checked = !!state.showMenubarItem;
+      }
+      window.boot = boot;
+
+      function runBoot() {
+        try {
+          boot(window.__OCR_STATE__);
+        } catch (e) {}
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", runBoot);
+      } else {
+        runBoot();
+      }
+
+      document.getElementById("defaultInput").addEventListener("change", function (e) {
+        post("setDefaultInput", { action: e.target.value });
+      });
+      document.getElementById("defaultOutput").addEventListener("change", function (e) {
+        post("setDefault", { action: e.target.value });
+      });
+
+      document.getElementById("btnFolderChoose").addEventListener("click", function () {
+        post("pickFolder");
+      });
+      document.getElementById("btnFolderOpen").addEventListener("click", function () {
+        post("openFolder");
+      });
+
+      document.getElementById("btnHotkeySet").addEventListener("click", function () {
+        post("armHotkeyCapture");
+        setText("hotkeyHelp", "Watch notification: press shortcut (Esc cancels).");
+        try {
+          document.body.focus();
+        } catch (e) {}
+      });
+
+      document.getElementById("showMenubar").addEventListener("change", function (e) {
+        post("setShowMenubarItem", { value: e.target.checked });
+      });
+
+      document.getElementById("btnReset").addEventListener("click", function () {
+        post("reset");
+      });
+    </script>
+  </body>
+</html>
